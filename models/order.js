@@ -1,30 +1,21 @@
 const mongoose = require("mongoose");
-const Produit = require ('./produit.js')
+const produit = require ('./produit.js')
 const User = require ('./user.js');
-const { type } = require("@testing-library/user-event/dist/type");
 
 const orderSchema = new mongoose.Schema(
     {
-        userID: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: User,
+        user: {
+            type: ObjectId,
+            ref: "User",
             required: true,
-        },
-        products: [
-            {
-                produitID: {
-                    type:mongoose.Schema.Types.ObjectId,
-                    ref: Produit,
-                    required: true,
-                },
-                quantity: {
-                    type: Number,
-                    required: true,
-                    min: 1,
-                },
-
             },
-        ],
+            allProduct: [
+                {
+                id: { type: ObjectId, ref: "produit" },
+                quantitiy: Number,
+                price:Number
+                },
+                ],
         priceTotal: { // Prix sans livraison
             type: Number,
             required: true,
