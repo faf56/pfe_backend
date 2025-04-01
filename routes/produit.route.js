@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Produit = require("../models/produit");
+const Marque = require("../models/marque");
+const Scategorie = require("../models/scategorie");
 
 // ✅ 1. Afficher la liste des produits (DOIT ÊTRE EN DERNIER)
 router.get('/', async (req, res) => {
@@ -96,7 +98,7 @@ router.delete('/:produitId', async (req, res) => {
         res.status(404).json({ message: error.message });
     }
 });
-
+/*
 // ✅ 5. Dernièrement, chercher un article par ID (DOIT ÊTRE À LA FIN)
 router.get('/:produitId', async (req, res) => {
     try {
@@ -104,6 +106,66 @@ router.get('/:produitId', async (req, res) => {
         res.status(200).json(art);
     } catch (error) {
         res.status(404).json({ message: "Article non trouvé" });
+    }
+});
+*/
+// ✅ Route de recherche améliorée
+router.get('/search', async (req, res) => {
+    try {
+        const searchTerm = req.query.q;
+        
+        // Validation du terme de recherche
+        if (!searchTerm || searchTerm.trim() === "") {
+            return res.status(400).json({ 
+                success: false,
+                message: "Le terme de recherche est requis" 
+            });
+        }
+
+        // Recherche dans les collections liées
+        const [scategories, marques] = await Promise.all([
+            Scategorie.find({ nomscategorie: { $regex: searchTerm, $options: 'i' } }),
+            Marque.find({ nommarque: { $regex: searchTerm, $options: 'i' } })
+        ]);
+
+        // Recherche principale
+        const produits = await Produit.find({
+            $or: [
+                { title: { $regex: searchTerm, $options: 'i' } },
+                { description: { $regex: searchTerm, $options: 'i' } },
+                { scategorieID: { $in: scategories.map(sc => sc._id) } },
+                { marqueID: { $in: marques.map(m => m._id) } }
+            ]
+        })
+        .populate({
+            path: 'scategorieID',
+            select: 'nomscategorie'
+        })
+        .populate({
+            path: 'marqueID',
+            select: 'nommarque'
+        });
+
+        // Formatage de la réponse
+        const response = {
+            success: true,
+            count: produits.length,
+            results: produits
+        };
+
+        if (produits.length === 0) {
+            response.message = "Aucun résultat trouvé";
+        }
+
+        res.status(200).json(response);
+
+    } catch (error) {
+        console.error("Erreur recherche:", error);
+        res.status(500).json({ 
+            success: false,
+            message: "Erreur serveur lors de la recherche",
+            error: error.message 
+        });
     }
 });
 
