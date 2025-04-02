@@ -6,6 +6,8 @@ const scategorieRouter = require("./routes/scategorie.route")
 const MarqueRouter = require("./routes/marque.route")
 const ProduitRouter = require("./routes/produit.route")
 const userRouter =require("./routes/user.route")
+const livraisonRoutes = require('./routes/livraison.route');
+const orderRoutes = require('./routes/order.route');
 const dotenv=require("dotenv")
 const cors=require("cors")
 app.use(express.json())
@@ -26,6 +28,8 @@ app.use('/api/scategories', scategorieRouter)
 app.use("/api/marques",MarqueRouter)
 app.use("/api/produits", ProduitRouter)
 app.use('/api/users', userRouter);
+app.use('/api/livraisons', livraisonRoutes);
+app.use('/api/orders', orderRoutes);
 
 app.listen(process.env.PORT,function(){
     console.log("serveur is listen on port 2000")
