@@ -47,7 +47,7 @@ router.get('/new', async (req, res) => {
     try {
         const produits = await Produit.find({})
             .sort({ _id: -1 })
-            .limit(10)
+            .limit(15)
             .populate("scategorieID")
             .populate("marqueID")
             .exec();
@@ -98,17 +98,19 @@ router.delete('/:produitId', async (req, res) => {
         res.status(404).json({ message: error.message });
     }
 });
-/*
+
 // ✅ 5. Dernièrement, chercher un article par ID (DOIT ÊTRE À LA FIN)
 router.get('/:produitId', async (req, res) => {
     try {
-        const art = await Produit.findById(req.params.produitId);
+        const art = await Produit.findById(req.params.produitId)
+        .populate('marqueID', 'nommarque')
+        .populate('scategorieID', 'nomscategorie');
         res.status(200).json(art);
     } catch (error) {
         res.status(404).json({ message: "Article non trouvé" });
     }
 });
-*/
+
 // ✅ Route de recherche améliorée
 router.get('/search', async (req, res) => {
     try {
