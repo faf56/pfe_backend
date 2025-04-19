@@ -1,63 +1,72 @@
-
-const mongoose = require('mongoose')
-const bcrypt = require('bcrypt')
+const mongoose = require("mongoose")
+const bcrypt = require("bcrypt")
 
 const AddressSchema = new mongoose.Schema({
-    adresse: { type: String, required: true },
-    ville: { type: String, required: true },
-    codepostal: { type: String, required: true },
-    pays: { type: String, required: true, default: "Tunisie" },
-  });
+  adresse: { type: String, required: true },
+  ville: { type: String, required: true },
+  codepostal: { type: String, required: true },
+  pays: { type: String, required: true, default: "Tunisie" },
+})
 
-const userSchema = new mongoose.Schema({
-    email:{
-        type: String,
-        required: true,
-        unique: true
+const userSchema = new mongoose.Schema(
+  {
+    email: {
+      type: String,
+      required: true,
+      unique: true,
     },
     password: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     firstname: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     lastname: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
+    },
+    userVille: {
+      type: String,
+      required: false,
+    },
+    sexe: {
+      type: String,
+      enum: ["homme", "femme"],
+      required: false,
     },
     role: {
-        type: String,
-        enum: ["user","admin"],
-        default: "user"
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
     },
     isActive: {
-        type: Boolean,
-        default: false,
-        required: false
+      type: Boolean,
+      default: false,
+      required: false,
     },
-    avatar:{
-        type: String,
-        required: false
-    } ,
+    avatar: {
+      type: String,
+      required: false,
+    },
     addresses: [AddressSchema],
-    telephone:{
-        type: Number,
-        required: false
-    } ,
-},
-
-    {
-        timestamps: true,
+    telephone: {
+      type: Number,
+      required: false,
     },
+  },
+  {
+    timestamps: true,
+  },
 )
-userSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) return next()
-    const salt = await bcrypt.genSalt(10)
-    const hashedPassword = await bcrypt.hash(this.password, salt)
-    this.password = hashedPassword
-    next()
-    })
 
-module.exports = mongoose.model('User', userSchema)
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next()
+  const salt = await bcrypt.genSalt(10)
+  const hashedPassword = await bcrypt.hash(this.password, salt)
+  this.password = hashedPassword
+  next()
+})
+
+module.exports = mongoose.model("User", userSchema)

@@ -1,11 +1,13 @@
 const express=require('express')
 const mongoose=require('mongoose')
 const app=express()
+const path = require('path');
 const CategorieRouter=require("./routes/categorie.route")
 const scategorieRouter = require("./routes/scategorie.route")
 const MarqueRouter = require("./routes/marque.route")
 const ProduitRouter = require("./routes/produit.route")
 const userRouter =require("./routes/user.route")
+const contactRoutes = require("./routes/contact.route")
 const livraisonRoutes = require('./routes/livraison.route');
 const orderRoutes = require('./routes/order.route');
 const dotenv=require("dotenv")
@@ -30,6 +32,9 @@ app.use("/api/produits", ProduitRouter)
 app.use('/api/users', userRouter);
 app.use('/api/livraisons', livraisonRoutes);
 app.use('/api/orders', orderRoutes);
+app.use("/api/contact", contactRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 app.listen(process.env.PORT,function(){
     console.log("serveur is listen on port 2000")

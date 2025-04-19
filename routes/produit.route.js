@@ -90,6 +90,52 @@ router.get("/marque/:id", async (req, res) => {
   }
 })
 
+// Route pour récupérer les produits par catégorie
+router.get("/categorie/:id", async (req, res) => {
+  try {
+    // 1. Trouver toutes les sous-catégories qui appartiennent à cette catégorie
+    const scategories = await Scategorie.find({ categorieID: req.params.id });
+    
+    // 2. Extraire les IDs des sous-catégories
+    const scategorieIds = scategories.map(sc => sc._id);
+    
+    // 3. Trouver tous les produits qui ont ces IDs de sous-catégories
+    const produits = await Produit.find({ scategorieID: { $in: scategorieIds } })
+      .populate("scategorieID")
+      .populate("marqueID")
+      .exec();
+    
+    res.status(200).json(produits);
+  } catch (error) {
+    res.status(404).json({ 
+      message: "Erreur lors de la recherche des produits par catégorie", 
+      error: error.message 
+    });
+  }
+});
+
+// Route pour récupérer les produits en promotion
+router.get("/promotions", async (req, res) => {
+  try {
+    const produits = await Produit.find({
+      prixPromo: { $ne: null, $gt: 0 },
+      $expr: { $lt: ["$prixPromo", "$prix"] },
+    })
+      .populate("scategorieID")
+      .populate("marqueID")
+      .exec()
+
+    if (!produits || produits.length === 0) {
+      return res.status(404).json({ message: "Aucun produit en promotion trouvé" })
+    }
+
+    res.status(200).json(produits)
+  } catch (error) {
+    console.error("Erreur lors de la récupération des produits en promotion :", error)
+    res.status(500).json({ message: "Erreur serveur", error: error.message })
+  }
+})
+
 // ✅ 2. Route pour récupérer les nouveaux produits
 router.get("/new", async (req, res) => {
   try {
@@ -169,4 +215,3 @@ router.get("/", async (req, res) => {
 })
 
 module.exports = router
-

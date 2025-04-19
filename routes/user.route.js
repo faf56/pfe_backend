@@ -19,7 +19,7 @@ var transporter = nodemailer.createTransport({
 // créer un nouvel utilisateur
 router.post("/register", async (req, res) => {
   try {
-    const { email, password, firstname, lastname, role, isActive, telephone } = req.body
+    const { email, password, firstname, lastname, role, isActive, telephone, userVille, sexe } = req.body
     const user = await User.findOne({ email })
     if (user) return res.status(404).send({ success: false, message: "User already exists" })
 
@@ -31,6 +31,8 @@ router.post("/register", async (req, res) => {
       role: role || "user",
       isActive: isActive !== undefined ? isActive : false,
       telephone,
+      userVille,
+      sexe,
     })
 
     const createdUser = await newUser.save()
@@ -66,6 +68,8 @@ router.post("/register", async (req, res) => {
         role: createdUser.role,
         isActive: createdUser.isActive,
         telephone: createdUser.telephone,
+        userVille: createdUser.userVille,
+        sexe: createdUser.sexe,
       },
     })
   } catch (err) {
@@ -213,4 +217,3 @@ router.post("/login", async (req, res) => {
 })
 
 module.exports = router
-
