@@ -194,12 +194,21 @@ router.get("/:produitId", async (req, res) => {
   try {
     const art = await Produit.findById(req.params.produitId)
       .populate("marqueID", "nommarque")
-      .populate("scategorieID", "nomscategorie")
+      .populate({
+        path: "scategorieID",
+        select: "nomscategorie categorieID",
+        populate: {
+          path: "categorieID",
+          select: "nomcategorie" // tu peux aussi ajouter "_id" si tu veux l'id de la catégorie
+        }
+      })
+
     res.status(200).json(art)
   } catch (error) {
     res.status(404).json({ message: "Article non trouvé" })
   }
 })
+
 
 // ✅ 5. Afficher la liste des produits (DOIT ÊTRE EN DERNIER)
 router.get("/", async (req, res) => {
