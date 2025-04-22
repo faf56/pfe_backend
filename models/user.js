@@ -55,6 +55,13 @@ const userSchema = new mongoose.Schema(
       type: Number,
       required: false,
     },
+    // Ajout du champ favorites pour stocker les produits favoris
+    favorites: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "produit",
+      },
+    ],
   },
   {
     timestamps: true,

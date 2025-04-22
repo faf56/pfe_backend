@@ -3,18 +3,7 @@ const router = express.Router()
 const User = require("../models/user")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
-const nodemailer = require("nodemailer")
-
-var transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "farahathimen67@gmail.com",
-    pass: "qrxr xakx bmog lwsv",
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-})
+const emailService = require("../services/emailService")
 
 // créer un nouvel utilisateur
 router.post("/register", async (req, res) => {
@@ -39,22 +28,13 @@ router.post("/register", async (req, res) => {
 
     // Envoyer l'e-mail de confirmation de l'inscription si le compte n'est pas déjà actif
     if (!newUser.isActive) {
-      var mailOption = {
-        from: '"verify your email " <farahathimen67@gmail.com>',
-        to: newUser.email,
-        subject: "vérification your email ",
-        html: `<h2>${newUser.firstname}! thank you for registrering on our website</h2>
-        <h4>please verify your email to procced.. </h4>
-        <a href="http://${req.headers.host}/api/users/status/edit?email=${newUser.email}">click here</a>`,
+      try {
+        await emailService.sendActivationEmail(newUser, req.headers.host)
+        console.log("Email d'activation envoyé avec succès")
+      } catch (emailError) {
+        console.error("Erreur lors de l'envoi de l'email d'activation:", emailError)
+        // On continue malgré l'erreur d'envoi d'email
       }
-
-      transporter.sendMail(mailOption, (error, info) => {
-        if (error) {
-          console.log(error)
-        } else {
-          console.log("verification email sent to your gmail account ")
-        }
-      })
     }
 
     return res.status(201).send({

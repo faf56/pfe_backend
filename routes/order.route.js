@@ -3,6 +3,8 @@ const router = express.Router()
 const Order = require("../models/order")
 const Produit = require("../models/produit")
 const Livraison = require("../models/livraison")
+const User = require("../models/user")
+const emailService = require("../services/emailService")
 
 // Get all orders
 router.get("/", async (req, res) => {
@@ -72,8 +74,11 @@ router.post("/", async (req, res) => {
     }
     const fraisLivraison = livraison.frais
 
-    // Calculate total
-    const total = calculatedSubtotal + fraisLivraison
+    // Vérifier si la livraison est gratuite (sousTotal >= 99)
+    const livraisonGratuite = sousTotal >= 99
+
+    // Calculate total (si livraison gratuite, on n'ajoute pas les frais)
+    const total = livraisonGratuite ? calculatedSubtotal : calculatedSubtotal + fraisLivraison
 
     // Create order
     const newOrder = new Order({
@@ -85,6 +90,7 @@ router.post("/", async (req, res) => {
       methodePaiement,
       livraisonID,
       adresseLivraison: livraison.titre !== "Retrait en magasin" ? adresseLivraison : null,
+      livraisonGratuite,
     })
 
     await newOrder.save()
@@ -98,6 +104,18 @@ router.post("/", async (req, res) => {
         select: "title imagepro prix prixPromo",
       })
       .exec()
+
+    // Envoyer un email de confirmation avec la facture
+    try {
+      const user = await User.findById(userID)
+      if (user) {
+        await emailService.sendOrderConfirmationEmail(populatedOrder, user)
+        console.log("Email de confirmation de commande envoyé avec succès")
+      }
+    } catch (emailError) {
+      console.error("Erreur lors de l'envoi de l'email de confirmation:", emailError)
+      // On continue malgré l'erreur d'envoi d'email
+    }
 
     res.status(201).json(populatedOrder)
   } catch (error) {
