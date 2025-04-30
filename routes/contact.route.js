@@ -40,7 +40,7 @@ const transporter = nodemailer.createTransport({
 // Envoyer un message de contact
 router.post("/send", upload.single("attachment"), async (req, res) => {
   try {
-    const { subject, email, orderRef, message, captcha } = req.body
+    const { subject, email, orderRef, message } = req.body
     const attachment = req.file
 
     // Vérifier les données requises
@@ -48,10 +48,7 @@ router.post("/send", upload.single("attachment"), async (req, res) => {
       return res.status(400).json({ success: false, message: "Email et message sont requis" })
     }
 
-    // Vérifier le captcha (dans un environnement réel, vous devriez vérifier avec l'API Google)
-    if (!captcha) {
-      return res.status(400).json({ success: false, message: "Captcha non validé" })
-    }
+    
 
     // Créer un nouvel objet contact
     const newContact = new Contact({

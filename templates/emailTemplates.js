@@ -357,7 +357,7 @@ exports.getActivationEmailTemplate = (user, activationLink) => {
           <div style="margin-top: 30px;">
             <p>Vous pouvez suivre l'état de votre commande en vous connectant à votre compte sur notre site.</p>
             <div style="text-align: center;">
-              <a href="http://perlacoif.com/mon-compte/commandes" class="button">Suivre ma commande</a>
+              <a href="http://localhost:1500/mon-compte" class="button">Suivre ma commande</a>
             </div>
           </div>
         </div>
