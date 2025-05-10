@@ -10,7 +10,7 @@ const userRouter =require("./routes/user.route")
 const contactRoutes = require("./routes/contact.route")
 const livraisonRoutes = require('./routes/livraison.route');
 const orderRoutes = require('./routes/order.route');
-const favoritesRoutes = require("./routes/favorites.route");
+
 const dotenv=require("dotenv")
 const cors=require("cors")
 app.use(express.json())
@@ -35,7 +35,7 @@ app.use('/api/livraisons', livraisonRoutes);
 app.use('/api/orders', orderRoutes);
 app.use("/api/contact", contactRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use("/api/favorites", favoritesRoutes);
+
 
 
 app.listen(process.env.PORT,function(){

@@ -1,9 +1,12 @@
 const express = require("express")
+const mongoose = require("mongoose");
 const router = express.Router()
 const User = require("../models/user")
+const Produit = require("../models/produit");
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const emailService = require("../services/emailService")
+const verifyToken = require("../middleware/verifytoken");
 
 // créer un nouvel utilisateur
 router.post("/register", async (req, res) => {
@@ -231,5 +234,138 @@ router.post("/login", async (req, res) => {
     return res.status(404).send({ success: false, message: err.message })
   }
 })
+
+
+// Ajouter un produit aux favoris
+router.post('/:userId/favorites', verifyToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { produitId } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(produitId)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'ID(s) invalide(s)' 
+      });
+    }
+
+    if (req.user.id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Accès non autorisé' 
+      });
+    }
+
+    if (!await Produit.exists({ _id: produitId })) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Produit non trouvé' 
+      });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $addToSet: { favorites: produitId } },
+      { new: true }
+    ).select('favorites');
+
+    res.status(200).json({ 
+      success: true,
+      message: 'Produit ajouté aux favoris',
+      favorites: updatedUser.favorites
+    });
+
+  } catch (err) {
+    console.error("Erreur favoris:", err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur serveur' 
+    });
+  }
+});
+
+// Supprimer un produit des favoris
+router.delete('/:userId/favorites/:produitId', verifyToken, async (req, res) => {
+  try {
+    const { userId, produitId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(produitId)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'ID(s) invalide(s)' 
+      });
+    }
+
+    if (req.user.id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Accès non autorisé' 
+      });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $pull: { favorites: produitId } },
+      { new: true }
+    ).select('favorites');
+
+    res.status(200).json({ 
+      success: true,
+      message: 'Produit retiré des favoris',
+      favorites: updatedUser.favorites
+    });
+
+  } catch (err) {
+    console.error("Erreur suppression favoris:", err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur serveur' 
+    });
+  }
+});
+
+// Obtenir les favoris
+router.get('/:userId/favorites', verifyToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'ID utilisateur invalide' 
+      });
+    }
+
+    if (req.user.id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Accès non autorisé' 
+      });
+    }
+
+    const user = await User.findById(userId)
+      .select('favorites')
+      .populate({
+        path: 'favorites',
+        select: 'title description prix prixPromo imagepro',
+        populate: [
+          { path: 'scategorieID', select: 'nomscategorie' },
+          { path: 'marqueID', select: 'nommarque' }
+        ]
+      });
+
+    res.status(200).json({ 
+      success: true,
+      favorites: user?.favorites || []
+    });
+
+  } catch (err) {
+    console.error("Erreur récupération favoris:", err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur serveur' 
+    });
+  }
+});
 
 module.exports = router
